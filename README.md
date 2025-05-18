@@ -18,7 +18,6 @@ Tarayıcıyı minimize edilmiş şekilde açar ve bot algılamayı aşmak için 
 
 Öncelikle gerekli bağımlılıkları yükleyin:
 
-```bash
 pip install selenium undetected-chromedriver
 Ayrıca Chrome tarayıcınızın yüklü olması gerekmektedir.
 
