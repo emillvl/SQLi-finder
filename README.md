@@ -1,3 +1,19 @@
+## English Disclaimer
+``DISCLAIMER``
+
+This script is intended solely for educational purposes and ethical security research in controlled environments. Unauthorized scanning, testing, or exploitation of websites without explicit permission is strictly prohibited and may be illegal. The authors and contributors of this code are not responsible for any misuse, illegal activities, or damages resulting from its use. By using this tool, you agree to comply with all applicable laws and to use it only on systems for which you have proper authorization.
+
+USE AT YOUR OWN RISK.
+
+## Türkçe Yasal Uyarı
+``YASAL UYARI``
+
+Bu script yalnızca eğitim amaçlı ve kontrollü ortamlarda etik güvenlik araştırmaları için tasarlanmıştır. Açık izin olmadan web sitelerinin taranması, test edilmesi veya istismar edilmesi kesinlikle yasaktır ve yasa dışı olabilir. Bu kodun yazarları ve katkıda bulunanlar, yanlış kullanım, yasa dışı faaliyetler veya kullanımından doğabilecek herhangi bir zarardan sorumlu değildir. Bu aracı kullanarak, yalnızca yetkili olduğunuz sistemlerde ve tüm geçerli yasalara uyarak kullanmayı kabul etmiş olursunuz.
+
+TÜM RİSK KULLANICIYA AİTTİR.
+
+
+
 ## 🇬🇧 English Guide
 
 ## 🔍 Google SQL Injection Dork Scanner
