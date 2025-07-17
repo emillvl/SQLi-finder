@@ -1,3 +1,53 @@
+## 🇬🇧 English Guide
+
+## 🔍 Google SQL Injection Dork Scanner
+A Python script that detects websites potentially vulnerable to SQL Injection using Google dorks.
+It opens a browser in minimized mode and uses undetected_chromedriver to bypass bot detection.
+
+## 🚀 Features
+Performs Google searches using dorks like inurl:php?=id.
+
+Filters URLs that end in a numeric parameter.
+
+Tests for SQL Injection by appending ' to URLs.
+
+Checks for known SQL error messages in page sources.
+
+Saves vulnerable sites to sqli_sites.txt.
+
+Tracks scan progress in progress.json to allow resuming after interruptions.
+
+Asks the user how many vulnerable sites to find.
+
+Optionally continues scanning after the target is reached.
+
+## 📦 Installation
+Install required dependencies:
+
+`pip install selenium undetected-chromedriver`
+Google Chrome must also be installed on your system.
+
+## ⚙️ Usage
+
+Run the script:
+
+`python scanner.py`
+The program will ask how many vulnerable sites you want.
+
+It will open a minimized browser window and begin scanning via Google.
+
+Discovered vulnerable URLs are added to sqli_sites.txt.
+
+You can close and reopen the program at any time — it will continue from where it left off.
+
+🇹🇷 Türkçe Kullanım
+
+
+
+
+
+
+
 # 🔍 Google SQL Injection Dork Scanner
 
 Bu Python scripti, Google üzerinden belirlenen dork ile SQL Injection açıklı siteleri tespit eder.  
