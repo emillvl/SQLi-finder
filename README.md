@@ -56,7 +56,7 @@ Discovered vulnerable URLs are added to sqli_sites.txt.
 
 You can close and reopen the program at any time — it will continue from where it left off.
 
-🇹🇷 Türkçe Kullanım
+## 🇹🇷 Türkçe Kullanım
 
 
 
