@@ -56,6 +56,26 @@ Discovered vulnerable URLs are added to sqli_sites.txt.
 
 You can close and reopen the program at any time — it will continue from where it left off.
 
+## 📂 Output Files
+sqli_sites.txt → List of URLs found vulnerable to SQL Injection.
+
+progress.json → Process progress log (last checked page, tested URLs, success count).
+
+## ⚠️ Warning
+📌 This tool is for educational and personal testing purposes only.
+Unauthorized access or testing on systems without permission is illegal.
+It is recommended to use it only on your own systems or in permitted environments.
+
+## 📌 Example Run
+The browser runs in the background with a minimized window like this:
+
+``[INFO] Google search page: 3  
+[+] SQLi vulnerability found (2/10): http://example.com/php?id=5  
+No valid links found on page 3, moving to the next page...``
+## 📧 Contact
+For any issues, suggestions, or improvement requests, feel free to reach out.
+Pull requests and stars are warmly welcome ⭐️
+
 ## 🇹🇷 Türkçe Kullanım
 
 
