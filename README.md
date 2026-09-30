@@ -55,7 +55,7 @@ If you need a complete assessment, validate the finding manually in a controlled
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - `requests`
 
 Install dependencies:
@@ -216,7 +216,9 @@ SQLi-finder/
 ├── LICENSE
 ├── README.md
 ├── requirements.txt
-└── sqli_finder.py
+├── sqli_finder.py
+└── tests/
+    └── test_sqli_finder.py
 ```
 
 ## Design choices
@@ -236,6 +238,16 @@ This detector does not need a full browser. Direct HTTP requests are easier to a
 Modern pages are dynamic. Ads, timestamps, CSRF values, recommendation modules, rotating content, and analytics data can make two legitimate responses differ substantially.
 
 A changed response alone is therefore not treated as a SQL injection finding.
+
+## Tests
+
+The detector logic has offline regression tests and does not require live targets to exercise its core classification behavior.
+
+Run:
+
+```bash
+python -m unittest discover -s tests -v
+```
 
 ## License
 
