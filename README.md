@@ -1,140 +1,246 @@
-## English Disclaimer
-``DISCLAIMER``
+# SQLi-Finder
 
-This script is intended solely for educational purposes and ethical security research in controlled environments. Unauthorized scanning, testing, or exploitation of websites without explicit permission is strictly prohibited and may be illegal. The authors and contributors of this code are not responsible for any misuse, illegal activities, or damages resulting from its use. By using this tool, you agree to comply with all applicable laws and to use it only on systems for which you have proper authorization.
+A small, conservative SQL injection indicator checker for **authorized HTTP(S) targets**.
 
-USE AT YOUR OWN RISK.
+The current version is intentionally target-driven: you provide the URLs you are allowed to test, and the tool checks query-string parameters for error-based SQL injection indicators. It does not discover arbitrary websites through search-engine dorks, does not bypass bot detection, and does not attempt exploitation or data extraction.
 
-## Türkçe Yasal Uyarı
-``YASAL UYARI``
+## What changed
 
-Bu script yalnızca eğitim amaçlı ve kontrollü ortamlarda etik güvenlik araştırmaları için tasarlanmıştır. Açık izin olmadan web sitelerinin taranması, test edilmesi veya istismar edilmesi kesinlikle yasaktır ve yasa dışı olabilir. Bu kodun yazarları ve katkıda bulunanlar, yanlış kullanım, yasa dışı faaliyetler veya kullanımından doğabilecek herhangi bir zarardan sorumlu değildir. Bu aracı kullanarak, yalnızca yetkili olduğunuz sistemlerde ve tüm geçerli yasalara uyarak kullanmayı kabul etmiş olursunuz.
+The original version of this project automated Google dork searches, used `undetected_chromedriver`, and treated large page differences as evidence of SQL injection.
 
-TÜM RİSK KULLANICIYA AİTTİR.
+That approach had two problems:
 
+1. it encouraged broad public-web scanning rather than explicit-scope testing;
+2. dynamic pages can change between requests, so page-source differences alone produce noisy false positives.
 
+The revised version removes the search-engine scanner and focuses on a narrow detection task with clearer evidence.
 
-## 🇬🇧 English Guide
+## Features
 
-## 🔍 Google SQL Injection Dork Scanner
-A Python script that detects websites potentially vulnerable to SQL Injection using Google dorks.
-It opens a browser in minimized mode and uses undetected_chromedriver to bypass bot detection.
+- tests only URLs supplied by the user;
+- requires an explicit `--authorized` confirmation;
+- supports one URL or a text file containing multiple targets;
+- tests query parameters one at a time;
+- uses a single-quote mutation for conservative error-based checks;
+- compares baseline and probe responses;
+- recognizes common MySQL, PostgreSQL, SQL Server, Oracle, SQLite, and ODBC error signatures;
+- reports `likely`, `possible`, `not_detected`, `skipped`, or `error`;
+- rate-limits requests with a configurable delay;
+- uses request timeouts;
+- disables automatic redirects while probing;
+- caps response bodies to reduce unnecessary memory use;
+- writes machine-readable JSON Lines output.
 
-## 🚀 Features
-Performs Google searches using dorks like inurl:php?=id.
+## Important limitation
 
-Filters URLs that end in a numeric parameter.
+SQLi-Finder is **not a proof engine**.
 
-Tests for SQL Injection by appending ' to URLs.
+A `likely` result means a new database error signature appeared after a parameter was modified. A `possible` result means the request caused a strong server-side behavior change, such as a new 5xx response plus a substantial body-size change.
 
-Checks for known SQL error messages in page sources.
+Neither result should be treated as a complete vulnerability assessment on its own.
 
-Saves vulnerable sites to sqli_sites.txt.
+The tool does not perform:
 
-Tracks scan progress in progress.json to allow resuming after interruptions.
+- authentication bypass;
+- UNION-based extraction;
+- blind boolean inference;
+- time-delay payloads;
+- schema enumeration;
+- data extraction;
+- stacked-query testing;
+- POST-body fuzzing;
+- cookie/header fuzzing.
 
-Asks the user how many vulnerable sites to find.
+If you need a complete assessment, validate the finding manually in a controlled environment and use established security-testing tooling under authorization.
 
-Optionally continues scanning after the target is reached.
+## Requirements
 
-## 📦 Installation
-Install required dependencies:
+- Python 3.9+
+- `requests`
 
-`pip install selenium undetected-chromedriver`
-Google Chrome must also be installed on your system.
+Install dependencies:
 
-## ⚙️ Usage
+```bash
+python -m pip install -r requirements.txt
+```
 
-Run the script:
+## Usage
 
-`python scanner.py`
-The program will ask how many vulnerable sites you want.
+### Test one authorized URL
 
-It will open a minimized browser window and begin scanning via Google.
+```bash
+python sqli_finder.py \
+  --authorized \
+  --url "https://example.test/product.php?id=5"
+```
 
-Discovered vulnerable URLs are added to sqli_sites.txt.
+### Test several URLs
 
-You can close and reopen the program at any time — it will continue from where it left off.
+Repeat `--url`:
 
-## 📂 Output Files
-sqli_sites.txt → List of URLs found vulnerable to SQL Injection.
+```bash
+python sqli_finder.py \
+  --authorized \
+  --url "https://example.test/product.php?id=5" \
+  --url "https://example.test/view.php?post=12&lang=en"
+```
 
-progress.json → Process progress log (last checked page, tested URLs, success count).
+### Read targets from a file
 
-## ⚠️ Warning
-📌 This tool is for educational and personal testing purposes only.
-Unauthorized access or testing on systems without permission is illegal.
-It is recommended to use it only on your own systems or in permitted environments.
+Create a file such as:
 
-## 📌 Example Run
-The browser runs in the background with a minimized window like this:
+```text
+https://example.test/product.php?id=5
+https://example.test/view.php?post=12&lang=en
+```
 
-``[INFO] Google search page: 3  
-[+] SQLi vulnerability found (2/10): http://example.com/php?id=5  
-No valid links found on page 3, moving to the next page...``
-## 📧 Contact
-For any issues, suggestions, or improvement requests, feel free to reach out.
-Pull requests and stars are warmly welcome ⭐️
+Then run:
 
-## 🇹🇷 Türkçe Kullanım
+```bash
+python sqli_finder.py --authorized --input targets.txt
+```
 
+Blank lines and lines beginning with `#` are ignored.
 
+## Options
 
+```text
+--url URL          Add an authorized target URL. Repeatable.
+--input FILE       Read authorized target URLs from a text file.
+--authorized       Confirm authorization for all supplied targets.
+--timeout SECONDS  Request timeout. Default: 10.
+--delay SECONDS    Delay between requests. Default: 0.75.
+--output FILE      JSONL output path. Default: sqli_results.jsonl.
+--no-output        Do not write a result file.
+--version          Print the program version.
+```
 
+## Result states
 
+### `likely`
 
+A database error family was absent from the baseline response and appeared only after the parameter probe.
 
-# 🔍 Google SQL Injection Dork Scanner
+Example evidence:
 
-Bu Python scripti, Google üzerinden belirlenen dork ile SQL Injection açıklı siteleri tespit eder.  
-Tarayıcıyı minimize edilmiş şekilde açar ve bot algılamayı aşmak için `undetected_chromedriver` kullanır.  
+```text
+new database error signature after probe: mysql
+```
 
-## 🚀 Özellikler
+This is the strongest result the tool emits, but it still warrants manual verification.
 
-- Google'da `inurl:php?=id` dorku ile arama yapar.
-- Sonu rakamla biten URL'leri kontrol eder.
-- URL'ye `'` ekleyerek SQL Injection testi yapar.
-- Sayfa kaynaklarında bilinen SQL hata mesajlarını kontrol eder.
-- Açık bulunan siteleri `sqli_sites.txt` dosyasına kaydeder.
-- İşlem ilerleyişini `progress.json` dosyasında saklar. Böylece program kapanırsa kaldığı yerden devam eder.
-- Kullanıcıdan kaç tane açık site bulunması isteneceğini sorar.
-- Hedefe ulaşıldığında devam edip etmeyeceğinizi sorar.
+### `possible`
 
-## 📦 Kurulum
+The probe caused a significant server-side behavior change, currently requiring both:
 
-Öncelikle gerekli bağımlılıkları yükleyin:
+- a transition from a non-5xx baseline to a 5xx response; and
+- at least a 25% response-size difference.
 
-pip install selenium undetected-chromedriver
-Ayrıca Chrome tarayıcınızın yüklü olması gerekmektedir.
+The result explicitly notes that this is not proof of SQL injection.
 
-## ⚙️ Kullanım
-python scanner.py
-Program çalıştığında:
+### `not_detected`
 
-Size kaç tane açık site bulması gerektiğini soracak.
+No configured SQL error signature or strong behavioral indicator was observed.
 
-Sonrasında minimize edilmiş bir tarayıcı penceresi açıp Google araması yaparak işlemi başlatacak.
+This does **not** mean the parameter is guaranteed safe. Blind SQL injection, filtered error messages, WAF behavior, or application-specific handling can hide a vulnerability from this detector.
 
-sqli_sites.txt dosyasına açık bulunan siteler eklenecek.
+### `skipped`
 
-Programı dilediğiniz zaman kapatıp açabilir, kaldığı yerden devam ettirebilirsiniz.
+The supplied URL has no query-string parameter to test.
 
-## 📂 Çıktı Dosyaları
-sqli_sites.txt → SQL Injection açıklı bulunan URL listesi.
+### `error`
 
-progress.json → İşlem ilerleme kaydı (son bakılan sayfa, kontrol edilen URL'ler, başarı sayısı).
+The baseline or probe request failed.
 
-## ⚠️ Uyarı
-📌 Bu araç sadece eğitim ve kişisel test amaçlıdır.
-Yetkisiz sistemlere izinsiz erişim veya test işlemleri suçtur.
-Kendi sistemlerinizde veya izinli ortamlar üzerinde kullanmanız önerilir.
+## Output format
 
-## 📌 Ornek run
-Minimize edilmiş pencereyle tarayıcı arkaplanda şu şekilde çalışır:
+By default, each parameter check is appended to `sqli_results.jsonl`.
 
-[INFO] Google araması sayfa: 3
-[+] SQLi açığı bulundu (2/10): http://example.com/php?id=5
-Sayfa 3'te uygun link yok, sonraki sayfaya geçiliyor...
-## 📧 İletişim
-Herhangi bir sorun, öneri veya geliştirme talebi için bana ulaşabilirsiniz.
-PR'lar ve star'lar memnuniyetle karşılanır ⭐️
+Example:
+
+```json
+{"url":"https://example.test/product.php?id=5","parameter":"id","result":"likely","evidence":["new database error signature after probe: mysql"],"baseline_status":200,"probe_status":500,"baseline_bytes":8421,"probe_bytes":9132}
+```
+
+JSON Lines makes the results easy to process with Python, `jq`, or other tooling.
+
+## Detection model
+
+For each supplied URL:
+
+1. SQLi-Finder downloads a baseline response.
+2. It identifies query-string parameters.
+3. It modifies one parameter at a time by appending a single quote.
+4. It downloads the probe response.
+5. It compares database-error signatures and basic response behavior.
+6. It reports the result without attempting exploitation.
+
+Automatic redirects are disabled so a probe-induced redirect does not silently turn into an unrelated destination response.
+
+Response bodies are limited to 512 KiB because SQL error detection does not require downloading arbitrarily large pages.
+
+## False positives and false negatives
+
+No lightweight SQL injection detector is perfect.
+
+False positives may still occur when:
+
+- the application exposes generic SQL-like text;
+- backend failures happen coincidentally during a probe;
+- a reverse proxy or error handler changes responses dramatically.
+
+False negatives may occur when:
+
+- SQL errors are suppressed;
+- injection is blind;
+- the vulnerable input is outside the query string;
+- a WAF normalizes or blocks probes;
+- the application requires authentication or state;
+- the vulnerable request requires POST, JSON, cookies, or custom headers.
+
+For that reason, the tool is best used as a **triage signal**, not a final vulnerability verdict.
+
+## Responsible use
+
+Use SQLi-Finder only on systems you own or systems for which you have explicit permission to perform security testing.
+
+The program intentionally requires `--authorized` so accidental runs against an unreviewed target list are less likely.
+
+It does not attempt to hide its traffic. The default User-Agent identifies the request as an authorized security test and links back to this project.
+
+## Repository structure
+
+```text
+SQLi-finder/
+├── .gitignore
+├── LICENSE
+├── README.md
+├── requirements.txt
+└── sqli_finder.py
+```
+
+## Design choices
+
+### Why no Google dorks?
+
+Discovery and vulnerability verification are separate problems.
+
+Keeping target discovery out of the scanner makes authorization boundaries clearer and removes a dependency on search-engine scraping and anti-bot workarounds.
+
+### Why no browser automation?
+
+This detector does not need a full browser. Direct HTTP requests are easier to audit, faster to run, and introduce fewer moving parts.
+
+### Why not flag every changed page?
+
+Modern pages are dynamic. Ads, timestamps, CSRF values, recommendation modules, rotating content, and analytics data can make two legitimate responses differ substantially.
+
+A changed response alone is therefore not treated as a SQL injection finding.
+
+## License
+
+Licensed under the **Apache License 2.0**. See [LICENSE](LICENSE).
+
+## Author
+
+Emil Veliyev — [@emillvl](https://github.com/emillvl)
