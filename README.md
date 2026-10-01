@@ -2,9 +2,9 @@
 
 A small, conservative SQL injection indicator checker for **authorized HTTP(S) targets**.
 
-The current version is intentionally target-driven: you provide the URLs you are allowed to test, and the tool checks query-string parameters for error-based SQL injection indicators. It does not discover arbitrary websites through search-engine dorks, does not bypass bot detection, and does not attempt exploitation or data extraction.
+You supply the URLs you are allowed to test. SQLi-Finder checks their query-string parameters for error-based SQL injection indicators. It does not discover arbitrary websites through search-engine dorks, does not bypass bot detection, and does not attempt exploitation or data extraction.
 
-## What changed
+## Background
 
 The original version of this project automated Google dork searches, used `undetected_chromedriver`, and treated large page differences as evidence of SQL injection.
 
@@ -13,7 +13,7 @@ That approach had two problems:
 1. it encouraged broad public-web scanning rather than explicit-scope testing;
 2. dynamic pages can change between requests, so page-source differences alone produce noisy false positives.
 
-The revised version removes the search-engine scanner and focuses on a narrow detection task with clearer evidence.
+The current tool uses an explicit target list and compares database-error signatures alongside response behavior.
 
 ## Features
 
@@ -31,9 +31,9 @@ The revised version removes the search-engine scanner and focuses on a narrow de
 - caps response bodies to reduce unnecessary memory use;
 - writes machine-readable JSON Lines output.
 
-## Important limitation
+## Interpreting findings
 
-SQLi-Finder is **not a proof engine**.
+SQLi-Finder reports indicators that need manual verification.
 
 A `likely` result means a new database error signature appeared after a parameter was modified. A `possible` result means the request caused a strong server-side behavior change, such as a new 5xx response plus a substantial body-size change.
 
@@ -181,8 +181,6 @@ Response bodies are limited to 512 KiB because SQL error detection does not requ
 
 ## False positives and false negatives
 
-No lightweight SQL injection detector is perfect.
-
 False positives may still occur when:
 
 - the application exposes generic SQL-like text;
@@ -198,13 +196,13 @@ False negatives may occur when:
 - the application requires authentication or state;
 - the vulnerable request requires POST, JSON, cookies, or custom headers.
 
-For that reason, the tool is best used as a **triage signal**, not a final vulnerability verdict.
+Use the results to decide what to investigate. They do not establish whether a target is vulnerable or safe.
 
 ## Responsible use
 
 Use SQLi-Finder only on systems you own or systems for which you have explicit permission to perform security testing.
 
-The program intentionally requires `--authorized` so accidental runs against an unreviewed target list are less likely.
+The required `--authorized` flag asks you to confirm permission for every supplied target before testing.
 
 It does not attempt to hide its traffic. The default User-Agent identifies the request as an authorized security test and links back to this project.
 
@@ -255,4 +253,4 @@ Licensed under the **Apache License 2.0**. See [LICENSE](LICENSE).
 
 ## Author
 
-Emil Veliyev — [@emillvl](https://github.com/emillvl)
+Emil Veliyev · [@emillvl](https://github.com/emillvl)
